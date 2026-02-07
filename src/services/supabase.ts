@@ -71,7 +71,7 @@ export const authService = {
       .from('usuarios')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -83,7 +83,7 @@ export const authService = {
       .update(updates)
       .eq('id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -110,9 +110,10 @@ export const pedidosService = {
         created_at: new Date().toISOString()
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('No se pudo crear el pedido');
     return pedidoFromDB(data);
   },
 
@@ -121,10 +122,10 @@ export const pedidosService = {
       .from('pedidos')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
-    return pedidoFromDB(data);
+    return data ? pedidoFromDB(data) : null;
   },
 
   async obtenerDisponibles(): Promise<Pedido[]> {
@@ -171,9 +172,10 @@ export const pedidosService = {
       })
       .eq('id', pedidoId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('No se pudo aceptar el pedido');
     return pedidoFromDB(data);
   },
 
@@ -186,9 +188,10 @@ export const pedidosService = {
       })
       .eq('id', pedidoId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('No se pudo completar el pedido');
     return pedidoFromDB(data);
   },
 
@@ -201,9 +204,10 @@ export const pedidosService = {
       })
       .eq('id', pedidoId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('No se pudo cancelar el pedido');
     return pedidoFromDB(data);
   },
 
@@ -216,9 +220,10 @@ export const pedidosService = {
       })
       .eq('id', pedidoId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('No se pudo marcar como pagado');
     return pedidoFromDB(data);
   },
 
@@ -247,9 +252,10 @@ export const mensajesService = {
       .from('mensajes')
       .insert(mensaje)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('No se pudo enviar el mensaje');
     return data;
   },
 
@@ -294,9 +300,10 @@ export const trackingService = {
       .from('tracking')
       .insert(tracking)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('No se pudo guardar el tracking');
     return data;
   },
 
@@ -307,7 +314,7 @@ export const trackingService = {
       .eq('pedido_id', pedidoId)
       .order('timestamp', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error && error.code !== 'PGRST116') throw error;
     return data;
@@ -346,9 +353,10 @@ export const transaccionesService = {
         created_at: new Date().toISOString()
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('No se pudo crear la transacción');
     return data;
   },
 
@@ -358,9 +366,10 @@ export const transaccionesService = {
       .update(updates)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('No se pudo actualizar la transacción');
     return data;
   },
 
@@ -369,7 +378,7 @@ export const transaccionesService = {
       .from('transacciones')
       .select('*')
       .eq('pedido_id', pedidoId)
-      .single();
+      .maybeSingle();
 
     if (error && error.code !== 'PGRST116') throw error;
     return data;
