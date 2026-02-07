@@ -4,7 +4,7 @@
 
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../utils/constants';
-import { Usuario, Pedido, Mensaje, TrackingPoint, Transaccion } from '../types';
+import { Usuario, Pedido, Mensaje, TrackingPoint, Transaccion, Calificacion } from '../types';
 import { pedidoFromDB, pedidoToDB } from '../utils/helpers';
 
 // Crear cliente de Supabase
@@ -382,6 +382,71 @@ export const transaccionesService = {
 
     if (error && error.code !== 'PGRST116') throw error;
     return data;
+  }
+};
+
+// ============================================================================
+// CALIFICACIONES FUNCTIONS
+// ============================================================================
+
+export const calificacionesService = {
+  async crear(calificacion: Omit<Calificacion, 'id' | 'created_at'>) {
+    const { data, error } = await supabase
+      .from('calificaciones')
+      .insert({
+        ...calificacion,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new Error('No se pudo crear la calificación');
+    return data;
+  },
+
+  async obtenerPorPedido(pedidoId: string): Promise<Calificacion[]> {
+    const { data, error } = await supabase
+      .from('calificaciones')
+      .select('*')
+      .eq('pedido_id', pedidoId);
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async obtenerPorUsuario(usuarioId: string): Promise<Calificacion[]> {
+    const { data, error } = await supabase
+      .from('calificaciones')
+      .select('*')
+      .eq('calificado_id', usuarioId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async verificarSiCalificoPedido(pedidoId: string, usuarioId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('calificaciones')
+      .select('id')
+      .eq('pedido_id', pedidoId)
+      .eq('calificador_id', usuarioId)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return !!data;
+  },
+
+  async obtenerEstadisticas(usuarioId: string) {
+    const { data: usuario, error } = await supabase
+      .from('usuarios')
+      .select('calificacion_promedio, total_calificaciones')
+      .eq('id', usuarioId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return usuario || { calificacion_promedio: 5.0, total_calificaciones: 0 };
   }
 };
 

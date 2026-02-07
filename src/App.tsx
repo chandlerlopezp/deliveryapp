@@ -65,7 +65,9 @@ const AppContent: React.FC = () => {
     aceptarPedido,
     completarPedido,
     cancelarPedido,
-    marcarPagado
+    marcarPagado,
+    crearCalificacion,
+    verificarSiCalifique
   } = usePedidosContext();
 
   const { toasts, showToast, removeToast } = useToast();
@@ -576,7 +578,21 @@ const AppContent: React.FC = () => {
               <PedidosDisponibles pedidos={pedidosDisponibles} onAceptar={handleAceptarPedido} />
             )}
             {activeTab === 'mis-entregas' && (
-              <PedidosActivos pedidos={misEntregas} unreadMessages={unreadMessages} onAbrirChat={handleAbrirChat} onCompletar={handleCompletarPedido} />
+              <PedidosActivos 
+              pedidos={misEntregas} 
+              unreadMessages={unreadMessages} 
+              usuarioActual={profile!} 
+              onAbrirChat={handleAbrirChat} 
+              onCompletar={handleCompletarPedido}
+              onCalificar={async (pedidoId, calificadoId, puntuacion, comentario) => {
+                try {
+                  await crearCalificacion(pedidoId, calificadoId, puntuacion, comentario);
+                  showToast('⭐ Calificación enviada', 'success');
+                } catch (error: any) {
+                  showToast(error.message || 'Error al calificar', 'error');
+                }
+              }}
+            />
             )}
             {activeTab === 'historial' && (
               <DetallePedido historial={historial} resumen={resumenFinanciero} tipo="delivery" />

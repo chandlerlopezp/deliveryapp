@@ -120,6 +120,17 @@ export interface ResumenFinanciero {
   distanciaTotal: number;
 }
 
+export interface Calificacion {
+  id: string;
+  pedido_id: string;
+  calificador_id: string;
+  calificado_id: string;
+  tipo_calificador: 'cliente' | 'delivery';
+  puntuacion: number; // 1-5
+  comentario?: string;
+  created_at: string;
+}
+
 export type UserMode = 'cliente' | 'delivery' | null;
 
 export type TabCliente = 'nuevo' | 'mis-pedidos' | 'historial';

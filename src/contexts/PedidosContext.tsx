@@ -24,6 +24,8 @@ interface PedidosContextType {
   cancelarPedido: (pedidoId: string) => Promise<void>;
   marcarPagado: (pedidoId: string) => Promise<void>;
   refetch: () => Promise<void>;
+  verificarSiCalifique: (pedidoId: string) => Promise<boolean>;
+  crearCalificacion: (pedidoId: string, calificadoId: string, puntuacion: number, comentario: string) => Promise<void>;
 }
 
 const PedidosContext = createContext<PedidosContextType | undefined>(undefined);

@@ -5,12 +5,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Pedido, Usuario, NuevoPedido, Coordenadas, ResumenFinanciero } from '../types';
 import { pedidosService } from '../services/supabase';
+import { calificacionesService } from '../services/supabase';
 import { 
   crearPedidoCompleto, 
   aceptarPedidoComoDelivery, 
   completarPedidoYProcesarPago,
   obtenerResumenFinanciero 
 } from '../services/api';
+
 
 interface UsePedidosReturn {
   pedidos: Pedido[];
@@ -27,7 +29,9 @@ interface UsePedidosReturn {
   cancelarPedido: (pedidoId: string) => Promise<void>;
   marcarPagado: (pedidoId: string) => Promise<void>;
   refetch: () => Promise<void>;
-}
+  verificarSiCalifique: (pedidoId: string) => Promise<boolean>;
+  crearCalificacion: (pedidoId: string, calificadoId: string, puntuacion: number, comentario: string) => Promise<void>;
+  }
 
 export const usePedidos = (
   usuario: Usuario | null,
@@ -215,6 +219,45 @@ export const usePedidos = (
     }
   }, []);
 
+  const verificarSiCalifique = useCallback(async (pedidoId: string): Promise<boolean> => {
+    if (!usuario) return false;
+    
+    try {
+      return await calificacionesService.verificarSiCalificoPedido(pedidoId, usuario.id);
+    } catch (err) {
+      console.error('Error al verificar calificación:', err);
+      return false;
+    }
+  }, [usuario]);
+
+  const crearCalificacion = useCallback(async (
+    pedidoId: string, 
+    calificadoId: string, 
+    puntuacion: number, 
+    comentario: string
+  ): Promise<void> => {
+    if (!usuario) throw new Error('Usuario no autenticado');
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await calificacionesService.crear({
+        pedido_id: pedidoId,
+        calificador_id: usuario.id,
+        calificado_id: calificadoId,
+        tipo_calificador: userMode || 'cliente',
+        puntuacion,
+        comentario: comentario || undefined
+      });
+    } catch (err: any) {
+      setError(err.message || 'Error al crear calificación');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [usuario, userMode]);
+
   return {
     pedidos,
     pedidosDisponibles,
@@ -229,7 +272,9 @@ export const usePedidos = (
     completarPedido,
     cancelarPedido,
     marcarPagado,
-    refetch: cargarPedidos
+    refetch: cargarPedidos,
+    verificarSiCalifique,
+    crearCalificacion
   };
 };
 
