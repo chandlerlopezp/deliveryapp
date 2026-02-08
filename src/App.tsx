@@ -29,6 +29,7 @@ import { ListaPedidos } from './components/cliente/ListaPedidos';
 import { DetallePedido } from './components/cliente/DetallePedido';
 import { PedidosDisponibles } from './components/delivery/PedidosDisponibles';
 import { PedidosActivos } from './components/delivery/PedidosActivos';
+import { CalificacionModal } from './components/CalificacionModal';
 
 // Services
 import { inicializarMercadoPago, simularPago, TARJETA_PRUEBA } from './services/mercadopago';
@@ -97,6 +98,8 @@ const AppContent: React.FC = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const autoReplyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [pedidoParaCalificar, setPedidoParaCalificar] = useState<Pedido | null>(null);
 
   // Inicializar Mercado Pago
   useEffect(() => {
@@ -199,6 +202,23 @@ const AppContent: React.FC = () => {
       showToast('✅ Entrega completada', 'success');
     } catch (error: any) {
       showToast(error.message, 'error');
+    }
+  };
+
+  const handleCalificarUsuario = async (puntuacion: number, comentario: string) => {
+    if (!pedidoParaCalificar) return;
+    
+    try {
+      await crearCalificacion(
+        pedidoParaCalificar.id,
+        pedidoParaCalificar.cliente_id,
+        puntuacion,
+        comentario
+      );
+      showToast('⭐ Calificación enviada', 'success');
+      setPedidoParaCalificar(null);
+    } catch (error: any) {
+      showToast(error.message || 'Error al calificar', 'error');
     }
   };
 
@@ -522,6 +542,21 @@ const AppContent: React.FC = () => {
         />
       )}
 
+      {/* Modal de calificación */}
+      {pedidoParaCalificar && profile && (
+        <CalificacionModal
+          pedido={pedidoParaCalificar}
+          usuarioActual={profile}
+          usuarioACalificar={{
+            id: pedidoParaCalificar.cliente_id,
+            nombre: pedidoParaCalificar.cliente_nombre || 'Cliente',
+            role: 'cliente'
+          }}
+          onClose={() => setPedidoParaCalificar(null)}
+          onCalificar={handleCalificarUsuario}
+        />
+      )}
+
       {/* Header */}
       <div className={`${userMode === 'delivery' ? 'bg-purple-600' : 'bg-blue-600'} text-white p-4`}>
         <div className="max-w-4xl mx-auto flex justify-between items-center">
@@ -581,17 +616,8 @@ const AppContent: React.FC = () => {
               <PedidosActivos 
               pedidos={misEntregas} 
               unreadMessages={unreadMessages} 
-              usuarioActual={profile!} 
               onAbrirChat={handleAbrirChat} 
               onCompletar={handleCompletarPedido}
-              onCalificar={async (pedidoId, calificadoId, puntuacion, comentario) => {
-                try {
-                  await crearCalificacion(pedidoId, calificadoId, puntuacion, comentario);
-                  showToast('⭐ Calificación enviada', 'success');
-                } catch (error: any) {
-                  showToast(error.message || 'Error al calificar', 'error');
-                }
-              }}
             />
             )}
             {activeTab === 'historial' && (
