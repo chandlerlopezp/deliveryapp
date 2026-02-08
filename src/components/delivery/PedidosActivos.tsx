@@ -34,14 +34,21 @@ export const PedidosActivos: React.FC<PedidosActivosProps> = ({
   const handleCompletar = async (pedidoId: string) => {
     setIsCompletando(true);
     try {
+      console.log('🔍 Completando pedido:', pedidoId);
       await onCompletar(pedidoId);
+      
       // Después de completar, mostrar modal de calificación
       const pedido = pedidos.find(p => p.id === pedidoId);
+      console.log('🔍 Pedido encontrado:', pedido);
+      
       if (pedido) {
+        console.log('✅ Mostrando modal de calificación');
         setPedidoACalificar(pedido);
+      } else {
+        console.log('❌ No se encontró el pedido');
       }
     } catch (error) {
-      console.error('Error al completar:', error);
+      console.error('❌ Error al completar:', error);
     } finally {
       setIsCompletando(false);
     }
