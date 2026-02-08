@@ -2,9 +2,9 @@
 // PEDIDOS ACTIVOS COMPONENT - Lista de entregas activas del delivery
 // ============================================================================
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Bike, MapPin, Navigation, MessageCircle, CheckCircle } from 'lucide-react';
-import { Pedido, Usuario } from '../../types';
+import { Pedido } from '../../types';
 import { MiniMapaPedido } from '../maps/MapaSelectorUbicacion';
 import { Button } from '../common/Button';
 
